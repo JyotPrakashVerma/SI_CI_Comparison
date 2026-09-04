@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Compare simple and compound interest loan costs for Indian borrowers.">
+  <title>Loan Cost Compare | Simple vs Compound</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { ink: "#172033", navy: "#1d3557", saffron: "#ef8b2c", teal: "#087f6a" } } } };
+  </script>
+  <style>
+    :root { --bg:#f5f7fb; --line:#e4e9f1; --muted:#667085; --blue:#2563eb; }
+    body { background:var(--bg); color:#172033; font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    input[type=number], select { width:100%; height:42px; border:1px solid #cfd7e5; border-radius:10px; background:white; padding:0 12px; outline:0; }
+    input[type=number]:focus, select:focus { border-color:var(--blue); box-shadow:0 0 0 3px #2563eb1f; }
+    input[type=range] { width:100%; accent-color:var(--blue); }
+    .range-number { position:relative; } .range-number input { padding-right:31px; }
+    .suffix { position:absolute; right:11px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+    .money-input { position:relative; } .money-input span { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--muted); pointer-events:none; }
+    .money-input input { padding-left:28px; }
+    .table-content { display:none; } .table-content.open { display:block; }
+    .chart-wrap { height:330px; position:relative; }
+    @media(max-width:640px){.chart-wrap{height:260px;}}
+  </style>
+</head>
+<body>
+  <header class="mx-auto max-w-7xl px-4 pb-7 pt-9 sm:px-6 lg:px-8">
+    <p class="mb-2 text-xs font-extrabold uppercase tracking-[.18em] text-blue-600">India loan clarity</p>
+    <h1 class="text-3xl font-black tracking-tight text-navy sm:text-4xl">Simple vs. Compound Interest</h1>
+    <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-500 sm:text-base">Compare the true cost of two loan structures in rupees, using familiar Indian banking rates and number formatting.</p>
+  </header>
+
+  <main class="mx-auto grid max-w-7xl grid-cols-1 gap-5 px-4 pb-12 sm:px-6 lg:grid-cols-[330px_1fr] lg:px-8">
+    <aside class="h-fit rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:sticky lg:top-5">
+      <div class="mb-5 flex items-center justify-between"><h2 class="font-bold text-navy">Loan assumptions</h2><span class="text-xs text-slate-400">Updates live</span></div>
+      <div class="space-y-5">
+        <div>
+          <div class="mb-2 flex justify-between"><label for="principal" class="text-sm font-semibold text-slate-700">Loan principal</label><span class="text-xs text-slate-400">₹10k–₹1Cr</span></div>
+          <div class="money-input"><span>₹</span><input id="principal" type="number" min="10000" max="10000000" step="10000" value="500000" inputmode="numeric"></div>
+          <input id="principal-range" class="mt-2" type="range" min="10000" max="10000000" step="10000" value="500000" aria-label="Loan principal slider">
+          <div class="mt-2 flex flex-wrap gap-1.5">
+            <button class="preset rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700" data-value="100000">₹1 Lakh</button>
+            <button class="preset rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700" data-value="500000">₹5 Lakhs</button>
+            <button class="preset rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700" data-value="1000000">₹10 Lakhs</button>
+            <button class="preset rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700" data-value="2500000">₹25 Lakhs</button>
+            <button class="preset rounded-md bg-blue-50 px-2 py-1 text-xs font-bold text-blue-700" data-value="5000000">₹50 Lakhs</button>
+          </div>
+        </div>
+        <div>
+          <div class="mb-2 flex justify-between"><label for="tenure" class="text-sm font-semibold text-slate-700">Loan tenure</label><span class="text-xs text-slate-400">1–30 years</span></div>
+          <div class="grid grid-cols-[1fr_82px] items-center gap-3"><input id="tenure-range" type="range" min="1" max="30" step="1" value="5" aria-label="Loan tenure slider"><div class="range-number"><input id="tenure" type="number" min="1" max="30" step="1" value="5" inputmode="numeric"><span class="suffix">yr</span></div></div>
+        </div>
+        <div>
+          <div class="mb-2 flex justify-between"><label for="simple-rate" class="text-sm font-semibold text-slate-700">Simple loan rate</label><span class="text-xs text-slate-400">1–30% p.a.</span></div>
+          <div class="grid grid-cols-[1fr_82px] items-center gap-3"><input id="simple-rate-range" type="range" min="1" max="30" step=".1" value="10" aria-label="Simple loan rate slider"><div class="range-number"><input id="simple-rate" type="number" min="1" max="30" step=".1" value="10" inputmode="decimal"><span class="suffix">%</span></div></div>
+        </div>
+        <div>
+          <div class="mb-2 flex justify-between"><label for="compound-rate" class="text-sm font-semibold text-slate-700">Compound loan rate</label><span class="text-xs text-slate-400">1–30% p.a.</span></div>
+          <div class="grid grid-cols-[1fr_82px] items-center gap-3"><input id="compound-rate-range" type="range" min="1" max="30" step=".1" value="9.5" aria-label="Compound loan rate slider"><div class="range-number"><input id="compound-rate" type="number" min="1" max="30" step=".1" value="9.5" inputmode="decimal"><span class="suffix">%</span></div></div>
+        </div>
+        <div>
+          <div class="mb-2 flex justify-between"><label for="frequency" class="text-sm font-semibold text-slate-700">Compounding frequency</label><span class="text-xs text-slate-400">Compound loan</span></div>
+          <select id="frequency"><option value="12" selected>Monthly</option><option value="4">Quarterly</option><option value="2">Semi-annually</option><option value="1">Annually</option></select>
+        </div>
+      </div>
+    </aside>
+
+    <section class="min-w-0">
+      <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+        <article class="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm">
+          <div class="mb-4 flex items-center justify-between"><p class="text-sm font-bold text-slate-500">Simple interest loan</p><span class="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-bold text-blue-700">Flat cost</span></div>
+          <p class="text-xs text-slate-400">Total interest paid</p><h2 id="simple-interest" class="mt-1 text-3xl font-black tracking-tight text-navy">₹0</h2>
+          <p class="mt-3 text-xs text-slate-500">Total repayment <strong id="simple-repayment" class="text-slate-700">₹0</strong></p>
+        </article>
+        <article class="rounded-2xl border border-teal-100 bg-white p-5 shadow-sm">
+          <div class="mb-4 flex items-center justify-between"><p class="text-sm font-bold text-slate-500">Compound interest loan</p><span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-bold text-teal">Monthly accrual</span></div>
+          <p class="text-xs text-slate-400">Total interest paid</p><h2 id="compound-interest" class="mt-1 text-3xl font-black tracking-tight text-navy">₹0</h2>
+          <p class="mt-3 text-xs text-slate-500">Total repayment <strong id="compound-repayment" class="text-slate-700">₹0</strong></p>
+        </article>
+        <article id="difference-card" class="rounded-2xl border border-amber-200 bg-amber-50 p-5 shadow-sm md:col-span-2">
+          <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><p class="text-sm font-bold text-amber-800">Cost difference / compounding penalty</p><h2 id="difference" class="mt-1 text-3xl font-black tracking-tight text-amber-900">₹0</h2><p id="difference-note" class="mt-1 text-xs text-amber-800">Calculating the cheaper option…</p></div><span id="winner-badge" class="w-fit rounded-full bg-white px-3 py-1.5 text-xs font-extrabold text-amber-800">Compare loans</span></div>
+        </article>
+      </div>
+
+      <section class="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><h2 class="font-bold text-navy">Cumulative repayment cost</h2><p class="mt-1 text-xs text-slate-500">Principal plus accrued interest by year.</p></div><div class="flex flex-wrap gap-3 text-xs text-slate-500"><span><i class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-blue-600"></i>Simple</span><span><i class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-teal"></i>Compound</span><span><i class="mr-1 inline-block h-2.5 w-2.5 rounded-full bg-slate-400"></i>Principal</span></div></div>
+        <div class="chart-wrap"><canvas id="chart" aria-label="Loan cost comparison chart"></canvas></div>
+      </section>
+
+      <section class="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex flex-col justify-between gap-3 sm:flex-row sm:items-start"><div><h2 class="font-bold text-navy">Year-by-year cost breakdown</h2><p class="mt-1 text-xs text-slate-500">See how the extra cost changes over your tenure.</p></div><button id="toggle-table" type="button" class="rounded-lg bg-blue-50 px-3 py-2 text-xs font-extrabold text-blue-700" aria-expanded="false">Show table</button></div>
+        <div id="table-content" class="table-content mt-4 overflow-x-auto"><table class="w-full min-w-[580px] border-collapse text-right text-sm"><thead><tr class="border-b border-slate-200 text-xs uppercase tracking-wide text-slate-400"><th class="px-3 py-3 text-left">Year</th><th class="px-3 py-3">Simple cumulative</th><th class="px-3 py-3">Compound cumulative</th><th class="px-3 py-3">Extra cost paid</th></tr></thead><tbody id="table-body"></tbody></table></div>
+        <p class="mt-4 text-xs text-slate-400">Bullet repayment comparison; actual loan schedules may differ with EMIs, fees, taxes, and prepayments.</p>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const $ = id => document.getElementById(id);
+      const money = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 });
+      const compact = new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", notation: "compact", maximumFractionDigits: 1 });
+      const state = { chart: null, timer: 0 };
+      const fields = [
+        ["principal", "principal-range", 10000, 10000000, false],
+        ["tenure", "tenure-range", 1, 30, true],
+        ["simple-rate", "simple-rate-range", 1, 30, false],
+        ["compound-rate", "compound-rate-range", 1, 30, false]
+      ];
+      const format = value => money.format(Math.round(Math.max(0, value)));
+      const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+      const read = (id, fallback) => { const value = Number($(id).value); return Number.isFinite(value) ? value : fallback; };
+      function sync(input, range, min, max, whole) {
+        const raw = read(input, min); const value = clamp(whole ? Math.round(raw) : raw, min, max);
+        $(input).value = value; $(range).value = value; $(input).setAttribute("aria-invalid", String(raw !== value)); schedule();
+      }
+      function calculate() {
+        const principal = clamp(read("principal", 500000), 10000, 10000000);
+        const tenure = clamp(Math.round(read("tenure", 5)), 1, 30);
+        const simpleRate = clamp(read("simple-rate", 10), 1, 30) / 100;
+        const compoundRate = clamp(read("compound-rate", 9.5), 1, 30) / 100;
+        const n = read("frequency", 12);
+        const rows = Array.from({ length: tenure + 1 }, (_, year) => {
+          const simple = principal * (1 + simpleRate * year);
+          const compound = principal * Math.pow(1 + compoundRate / n, n * year);
+          return { year, simple, compound, extra: compound - simple };
+        });
+        const final = rows[tenure]; const difference = final.extra;
+        $("simple-interest").textContent = format(final.simple - principal);
+        $("simple-repayment").textContent = format(final.simple);
+        $("compound-interest").textContent = format(final.compound - principal);
+        $("compound-repayment").textContent = format(final.compound);
+        $("difference").textContent = format(Math.abs(difference));
+        $("difference-note").textContent = difference > 0 ? `Compound loan costs ${format(Math.abs(difference))} more than the simple loan.` : difference < 0 ? `Compound loan costs ${format(Math.abs(difference))} less than the simple loan.` : "Both loan structures cost the same.";
+        $("winner-badge").textContent = difference > 0 ? "Simple loan is cheaper" : difference < 0 ? "Compound loan is cheaper" : "Equal cost";
+        $("difference-card").className = `rounded-2xl border p-5 shadow-sm md:col-span-2 ${difference > 0 ? "border-amber-200 bg-amber-50" : difference < 0 ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-slate-50"}`;
+        $("difference-note").className = `mt-1 text-xs ${difference > 0 ? "text-amber-800" : difference < 0 ? "text-emerald-800" : "text-slate-600"}`;
+        renderTable(rows); renderChart(rows, principal);
+      }
+      function renderTable(rows) {
+        $("table-body").innerHTML = rows.map(row => `<tr class="border-b border-slate-100 last:border-0"><td class="px-3 py-3 text-left font-semibold text-slate-600">${row.year}</td><td class="px-3 py-3 text-slate-600">${format(row.simple)}</td><td class="px-3 py-3 text-slate-600">${format(row.compound)}</td><td class="px-3 py-3 font-bold ${row.extra > 0 ? "text-amber-700" : "text-emerald-700"}">${format(Math.abs(row.extra))}</td></tr>`).join("");
+      }
+      function renderChart(rows, principal) {
+        if (state.chart) state.chart.destroy();
+        state.chart = new Chart($("chart"), {
+          type:"line", data:{ labels:rows.map(r => `Year ${r.year}`), datasets:[
+            { label:"Simple loan", data:rows.map(r=>r.simple), borderColor:"#2563eb", backgroundColor:"#2563eb14", fill:true, tension:.3, borderWidth:2, pointRadius:rows.length>15?0:3 },
+            { label:"Compound loan", data:rows.map(r=>r.compound), borderColor:"#087f6a", backgroundColor:"#087f6a12", fill:true, tension:.3, borderWidth:2, pointRadius:rows.length>15?0:3 },
+            { label:"Initial principal", data:rows.map(()=>principal), borderColor:"#94a3b8", borderDash:[5,5], pointRadius:0, fill:false, borderWidth:2 }
+          ]}, options:{ responsive:true, maintainAspectRatio:false, interaction:{mode:"index",intersect:false}, plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${format(c.parsed.y)}`}}}, scales:{x:{grid:{display:false},ticks:{maxTicksLimit:8,color:"#667085"}},y:{beginAtZero:true,grid:{color:"#edf0f5"},ticks:{color:"#667085",callback:v=>compact.format(v)}}}}
+        });
+      }
+      function schedule() { clearTimeout(state.timer); state.timer = setTimeout(calculate, 80); }
+      fields.forEach(([input, range, min, max, whole]) => {
+        $(range).addEventListener("input", () => sync(range, input, min, max, whole));
+        $(input).addEventListener("input", () => sync(input, range, min, max, whole));
+      });
+      $("frequency").addEventListener("change", schedule);
+      document.querySelectorAll(".preset").forEach(button => button.addEventListener("click", () => { $("principal").value = button.dataset.value; sync("principal", "principal-range", 10000, 10000000, false); }));
+      $("toggle-table").addEventListener("click", () => { const open = $("table-content").classList.toggle("open"); $("toggle-table").textContent = open ? "Hide table" : "Show table"; $("toggle-table").setAttribute("aria-expanded", String(open)); });
+      calculate();
+    })();
+  </script>
+</body>
+</html>
